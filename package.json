@@ -1,0 +1,23 @@
+{
+  "name": "gdw2122grabovskiheinleinmeisenhelter",
+  "version": "1.0.0",
+  "description": "Grundlagen des Web Workshop Wintersemester 2122",
+  "main": "src/app.js",
+  "scripts": {
+    "start dev server": "nodemon src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DGrabovski/GDW2122GrabovskiHeinleinMeisenhelter.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DGrabovski/GDW2122GrabovskiHeinleinMeisenhelter/issues"
+  },
+  "homepage": "https://github.com/DGrabovski/GDW2122GrabovskiHeinleinMeisenhelter#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "nodemon": "^2.0.14"
+  }
+}
