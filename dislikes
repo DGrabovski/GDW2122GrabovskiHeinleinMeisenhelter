@@ -1,0 +1,48 @@
+//add dislike
+router.post('/user/userID', async (req,res)=>{
+    
+    const newDislike = new dislikeSchema(req.body);
+    
+    try {
+        const dislikeToSave = await newDislike.save();
+        if(!newDislike) throw Error('Failed to save dislike');
+        console.log('Dislike saved');
+        res.status(201).json(newDislike);
+    } catch (error) {
+        res.status(400).json({msg:error});
+    }
+});
+
+//update dislike
+router.patch('/:id', async (req,res) => {
+    try {
+        const updateDislike = await dislikeSchema.findByIdAndUpdate(req.params.id,req.body);
+        if(!updateDislike) throw Error ('Dislike not found');
+        res.status(200).json({success : true});
+    } catch (error) {
+        res.status(400).json({msg:error});
+    }
+});
+
+//delete dislike
+router.delete('/:id', async (req,res) =>{
+    try {
+        const deleteDislike = await dislikeSchema.findByIdAndDelete(req.params.id);
+        if (!deleteDislike) throw Error ('Dislike nor Found');
+        res.status(200).json({deleted : true});
+    } catch (error) {
+        res.status(400).json({msg:error});
+    }
+});
+
+//get dislike
+//all dislikes
+router.get('/', async (req,res) => {
+    try {
+        const dislikeList = await dislikeSchema.find()
+        if(!dislikeSchema) throw Error ('No dislikes');
+        res.status(200).json(dislikeList);
+    } catch (error) {
+        res.status(400).json({msg:error});
+    }
+});
