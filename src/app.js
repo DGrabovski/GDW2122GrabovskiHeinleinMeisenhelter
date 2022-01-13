@@ -29,13 +29,17 @@ mongoose.connect(databaseUri)
   .catch(err => console.log(err));
 
 // request that creates a group
-app.post('/group', async (req, res) => {
+app.post('/group', authenticateUser, async (req, res) => {
   const userID = req.body.userID;
   const groupName = req.body.groupName;
 
-  new Group( {groupName: groupName, admin: userID}).save().then(() => {
-    res.status(201).json({message: 'group was created'});
-  })
+  if (!userID || !groupName) {
+    res.status(400).json({mesage: 'incorect syntax, please try again'});
+  } else {
+    new Group( {groupName: groupName, admin: userID}).save().then(() => {
+      res.status(201).json({message: 'group was created'});
+    })
+  }
 })
 
 app.post('/produkt', async (req, res) => {
@@ -44,3 +48,9 @@ app.post('/produkt', async (req, res) => {
   const json = await fetch_response.json();
   res.json(json);
 })
+
+
+// function that is used to verify is the user is logged in/ has verification
+function authenticateUser(req, res, next) {
+  // TODO: implement code that verifies the logged in user else throw 401 error
+}
