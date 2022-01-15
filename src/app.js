@@ -40,7 +40,7 @@ app.post('/group', authenticateUser, async (req, res) => {
   if (!userID || !groupName) {
     res.status(400).json({mesage: 'incorect syntax, please try again'});
   } else {
-    new Group({groupName: groupName, admin: userID}).save().then((group) => {
+    new Group({groupName: groupName, admin: userID, members: [req.body.userID]}).save().then((group) => {
       res.status(201).json({message: group});
     })
   }
@@ -51,7 +51,7 @@ app.post('/group', authenticateUser, async (req, res) => {
  * @Param string groupID: query parametert by which the group is searched
  */
 app.get('/group/:groupID', authenticateUser, async (req, res) => {
-  await Group.findById(req.params.groupID)
+  Group.findById(req.params.groupID)
     .then((group) => res.status(200).json({message: group}))
     .catch(() => res.status(404).json({message: 'the group was not found'}));
 })
@@ -81,6 +81,26 @@ app.delete('/group/:groupID', authenticateUser, async (req, res) => {
     }
   })
 })
+
+/**
+ * DELETE function that removes an user from a group
+ * @Param string groupID: groupID to find the group
+ * @Param string userID: userID to verify that the user is permitted to delete other users from group
+ * @Param string deleteUserID: userID of the user that should be removed
+ */
+app.delete('/group/:groupID/:userID', authenticateUser, async (req, res) => {
+  Group.findOne({_id: req.params.groupID, admin: req.params.userID}).then((group) => {
+    if (group) {
+      group.members.splice(group.members.indexOf(req.body.deleteUserID), 1);
+      group.save();
+      res.status(200).json({message: 'user was removed'})
+    } else {
+      res.status(404).json({message: 'the group was not found'});
+    }
+  })
+})
+
+// TODO: function to leave a group
 
 // Example call to the external API -> POC
 app.post('/produkt', async (req, res) => {
