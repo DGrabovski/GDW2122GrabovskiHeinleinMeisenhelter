@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const Group = require("../models/group");
 const User = require("../models/user");
 const Token = require("../models/token");
+const cors = require("cors");
 
 // setting up global variables
 const apiKeyAlwin = '?apiKey=397d585aa35c4b1b8b27beda022fd95f';
@@ -13,6 +14,9 @@ const apiUrl = 'https://api.spoonacular.com/'
 
 // creating express server
 const app = express();
+
+// use cors to allow all CORS requests
+app.use(cors());
 
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(bodyParser.json())
