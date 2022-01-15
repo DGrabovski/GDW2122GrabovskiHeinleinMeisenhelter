@@ -162,6 +162,7 @@ app.get('/user', authenticateUser, async (req, res) => {
 
 // external api calls
 
+// TODO: delete POC code
 // Example call to the external API -> POC
 app.post('/produkt', async (req, res) => {
   const url = `${apiUrl}food/products/upc/${req.body.upc}${apiKeyAlwin}`;
@@ -169,6 +170,22 @@ app.post('/produkt', async (req, res) => {
   const json = await fetch_response.json();
   res.json(json);
 })
+
+/**
+ * GET function that returns the rating and information about a specific product with the option to check the allergies,
+ * preferences and dislikes of a group of users
+ * @Param string upc: upc number by which the product is beeing searched
+ * @Param string groupID: used to get the group to check the preferences ...
+ */
+// TODO: implement function
+
+/**
+ * GET function that gets a specific product and searches/ rates all recipies that include the given product against a given group
+ * @Param string upc: the product that should be included in the recipies
+ * @Param string groupID: used to get the group and check the preferences ...
+ * @Param boolean random: option to generate a random recipie for inspiration
+ */
+// TODO: implement function
 
 // middleware and login/out calls
 
