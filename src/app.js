@@ -91,10 +91,10 @@ app.delete('/group/:groupID', authenticateUser, async (req, res) => {
  * @Param string userID: userID to verify that the user is permitted to delete other users from group
  * @Param string deleteUserID: userID of the user that should be removed
  */
-app.delete('/group/:groupID/:userID', authenticateUser, async (req, res) => {
-  Group.findOne({_id: req.params.groupID, admin: req.params.userID}).then((group) => {
+app.delete('/group/:groupID/:deleteUserID', authenticateUser, async (req, res) => {
+  Group.findOne({_id: req.params.groupID, admin: req.body.userID}).then((group) => {
     if (group) {
-      group.members.splice(group.members.indexOf(req.body.deleteUserID), 1);
+      group.members.splice(group.members.indexOf(req.params.deleteUserID), 1);
       group.save();
       res.status(200).json({message: 'user was removed'})
     } else {
@@ -103,7 +103,23 @@ app.delete('/group/:groupID/:userID', authenticateUser, async (req, res) => {
   })
 })
 
-// TODO: function to leave a group
+/**
+ * POST function that adds a member to a group
+ * @Param string groupID: id by which the group is identified
+ * @Param string userID: id by which the permission of the user to add another user is checked
+ * @Param string addUserID: id of the user that should be added
+ */
+app.post('/group/:groupID/:addUserID', authenticateUser, async (req, res) => {
+  Group.findOne({_id: req.params.groupID, admin: req.body.userID}).then((group) => {
+    if (group) {
+      group.members.push(req.params.addUserID);
+      group.save();
+      res.status(200).json({message: 'user was added to group'})
+    } else {
+      res.status(404).json({message: 'the group was not found'});
+    }
+  })
+})
 
 // user calls
 
@@ -156,6 +172,7 @@ app.post('/produkt', async (req, res) => {
 // middleware and login/out calls
 
 // middleware function that is used to verify is the user is logged in/ has verification
+// @Param string loginToken: the token that is used to verify the user
 function authenticateUser(req, res, next) {
   next();
   // TODO: implement code that verifies the logged in user else throw 401 error
