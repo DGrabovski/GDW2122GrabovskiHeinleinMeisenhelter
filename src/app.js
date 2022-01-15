@@ -5,6 +5,9 @@ const fetch = require("node-fetch");
 const mongoose = require("mongoose");
 const Group = require("../models/group");
 const User = require("../models/user");
+const Allergie = require("../models/allergies");
+const Preference = require("../models/preferences");
+const Dislike = require("../models/dislikes");
 
 // setting up global variables
 const apiKeyAlwin = '?apiKey=397d585aa35c4b1b8b27beda022fd95f';
@@ -158,6 +161,72 @@ app.get('/user', authenticateUser, async (req, res) => {
 })
 
 // list calls
+
+/**
+ * Post function that adds an allergie
+ * @Param String userID: query parameter of user posting an allergie
+ * @Param string allergie: allergie parameter
+ */
+app.post('/user/:userID/allergies', authenticateUser, async (req,res)=>{
+  try {
+      if(!req.params.userID || !req.body.allergies) throw Error('Incorect syntax, please try again');
+      await new Allergie({userID: req.params.userID, allergies: req.body.allergies}).save().then((allergie) => {
+        res.status(201).json({message: allergie});
+      });
+  } catch (error) {
+      res.status(400).json({msg:error});
+  }
+});
+
+/**
+ * PATCH function that updates allergies
+ * @Param String userID: query parameter of user updating an allergie
+ */
+app.patch('/user/:userID/allergies', authenticateUser, async (req,res) => {
+  Allergie.findOne({userID: req.params.userID}).then((allergie) => {
+    if(allergie) {
+        allergie.allergies = req.body.allergies;
+        allergie.save().then(() => {
+          res.status(200).json({message: 'allergie was updated'})
+        })
+    } else {
+        res.status(404).json({message: 'the allergie was not found'});
+    }
+})
+});
+
+/**
+ * Delete function that deletes an allergie
+ * @Param String userID: query parameter of user deleting an allergie
+ */
+ app.delete('/user/:userID/allergies', authenticateUser, async (req,res) =>{
+  Allergie.findOne({userID: req.params.userID}).then((allergie) => {
+      if(allergie) {
+          Allergie.deleteOne({userID: req.params.userID}).then(() => {
+            res.status(200).json({message: 'allergie was removed'})            
+          })
+      } else {
+          res.status(404).json({message: 'the allergie was not found'});
+      }
+  })
+});
+
+/**
+ * GET function that shows all allergies of one user
+ * @Param String userID: query parameter of user geting his list of allergies
+ * @Param string allergie: allergie parameter
+ */
+app.get('/user/:userID/allergies', authenticateUser, async (req,res) => {
+  Allergie.findOne({userID: req.params.userID}).then((allergie) => {
+    if(allergie) {
+          res.status(200).json({message: allergies})            
+    } else {
+        res.status(404).json({message: 'the allergie was not found'});
+    }
+})
+});
+
+
 
 // external api calls
 
