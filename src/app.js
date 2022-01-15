@@ -163,8 +163,8 @@ app.get('/user', authenticateUser, async (req, res) => {
 // list calls
 
 /**
- * Post function that adds an allergie
- * @Param String userID: query parameter of user posting an allergie
+ * Post function that adds all allergies
+ * @Param String userID: query parameter of user posting allergies
  * @Param string allergie: allergie parameter
  */
 app.post('/user/:userID/allergies', authenticateUser, async (req,res)=>{
@@ -180,7 +180,7 @@ app.post('/user/:userID/allergies', authenticateUser, async (req,res)=>{
 
 /**
  * PATCH function that updates allergies
- * @Param String userID: query parameter of user updating an allergie
+ * @Param String userID: query parameter of user updating allergies
  */
 app.patch('/user/:userID/allergies', authenticateUser, async (req,res) => {
   Allergie.findOne({userID: req.params.userID}).then((allergie) => {
@@ -190,14 +190,14 @@ app.patch('/user/:userID/allergies', authenticateUser, async (req,res) => {
           res.status(200).json({message: 'allergies were updated'})
         })
     } else {
-        res.status(404).json({message: 'the allergies were not found'});
+        res.status(404).json({message: 'no allergies were found'});
     }
 })
 });
 
 /**
- * Delete function that deletes an allergie
- * @Param String userID: query parameter of user deleting an allergie
+ * Delete function that deletes all allergies
+ * @Param String userID: query parameter of user deleting allergies
  */
  app.delete('/user/:userID/allergies', authenticateUser, async (req,res) =>{
   Allergie.findOne({userID: req.params.userID}).then((allergie) => {
@@ -206,7 +206,7 @@ app.patch('/user/:userID/allergies', authenticateUser, async (req,res) => {
             res.status(200).json({message: 'allergies were removed'})            
           })
       } else {
-          res.status(404).json({message: 'the allergies were not found'});
+          res.status(404).json({message: 'no allergies were found'});
       }
   })
 });
@@ -221,10 +221,75 @@ app.get('/user/:userID/allergies', authenticateUser, async (req,res) => {
     if(allergies) {
           res.status(200).json({message: allergies})            
     } else {
-        res.status(404).json({message: 'the allergies were not found'});
+        res.status(404).json({message: 'no allergies were found'});
     }
 })
 });
+
+/**
+ * Post function that adds all preferences
+ * @Param String userID: query parameter of user posting preferences
+ * @Param string preferences: preference parameter
+ */
+ app.post('/user/:userID/preferences', authenticateUser, async (req,res)=>{
+  try {
+      if(!req.params.userID || !req.body.preferences) throw Error('Incorect syntax, please try again');
+      await new Preference({userID: req.params.userID, preferences: req.body.preferences}).save().then((preferences) => {
+        res.status(201).json({message: preferences});
+      });
+  } catch (error) {
+      res.status(400).json({msg:error});
+  }
+});
+
+/**
+ * PATCH function that updates preferences
+ * @Param String userID: query parameter of user updating preferences
+ */
+app.patch('/user/:userID/preferences', authenticateUser, async (req,res) => {
+  Preference.findOne({userID: req.params.userID}).then((preference) => {
+    if(preference) {
+        preference.preferences = req.body.preferences;
+        preference.save().then(() => {
+          res.status(200).json({message: 'preferences were updated'})
+        })
+    } else {
+        res.status(404).json({message: 'no preferences were found'});
+    }
+})
+});
+
+/**
+ * Delete function that deletes all preferences
+ * @Param String userID: query parameter of user deleting preferences
+ */
+ app.delete('/user/:userID/preferences', authenticateUser, async (req,res) =>{
+  Preference.findOne({userID: req.params.userID}).then((preference) => {
+      if(preference) {
+          Preference.deleteOne({userID: req.params.userID}).then(() => {
+            res.status(200).json({message: 'preferences were removed'})            
+          })
+      } else {
+          res.status(404).json({message: 'no preferences were found'});
+      }
+  })
+});
+
+/**
+ * GET function that shows all preferences of one user
+ * @Param String userID: query parameter of user geting his list of preferences
+ * @Param string preference: preference parameter
+ */
+app.get('/user/:userID/preferences', authenticateUser, async (req,res) => {
+  Preference.findOne({userID: req.params.userID}).then((preferences) => {
+    if(preferences) {
+          res.status(200).json({message: preferences})            
+    } else {
+        res.status(404).json({message: 'no preferences were found'});
+    }
+})
+});
+
 
 
 
