@@ -44,8 +44,14 @@ app.post('/group', authenticateUser, async (req, res) => {
   if (!userID || !groupName) {
     res.status(400).json({mesage: 'incorect syntax, please try again'});
   } else {
-    new Group({groupName: groupName, admin: userID, members: [req.body.userID]}).save().then((group) => {
-      res.status(201).json({message: group});
+    Group.findOne({groupName: groupName, admin: userID}).then((group) => {
+      if (group) {
+        res.status(400).json({message: 'the group already exists'})
+      } else {
+        new Group({groupName: groupName, admin: userID, members: [req.body.userID]}).save().then((group) => {
+          res.status(201).json({message: group});
+        })
+      }
     })
   }
 })
@@ -142,7 +148,13 @@ app.post('/user', async (req, res) => {
   if (!userID || !userName || !userSurname || !userEmail || !userPassword) {
     res.status(400).json({mesage: 'incorect syntax, please try again'});
   } else {
-    new User( {userID: userID, userName: userName, userSurname: userSurname, userEmail: userEmail, userPassword: userPassword}).save().then(() => {
+    new User({
+      userID: userID,
+      userName: userName,
+      userSurname: userSurname,
+      userEmail: userEmail,
+      userPassword: userPassword
+    }).save().then(() => {
       res.status(201).json({message: 'user was created'});
     })
   }
@@ -162,22 +174,69 @@ app.get('/user', authenticateUser, async (req, res) => {
 
 // external api calls
 
-// TODO: delete POC code
-// Example call to the external API -> POC
-app.post('/produkt', async (req, res) => {
-  const url = `${apiUrl}food/products/upc/${req.body.upc}${apiKeyAlwin}`;
-  const fetch_response = await fetch(url);
-  const json = await fetch_response.json();
-  res.json(json);
-})
-
 /**
  * GET function that returns the rating and information about a specific product with the option to check the allergies,
  * preferences and dislikes of a group of users
  * @Param string upc: upc number by which the product is beeing searched
  * @Param string groupID: used to get the group to check the preferences ...
  */
-// TODO: implement function
+app.get('/product', authenticateUser, async (req, res) => {
+  const url = `${apiUrl}food/products/upc/${req.body.upc}${apiKeyAlwin}`;
+  const fetch_response = await fetch(url);
+  const respone_json = await fetch_response.json();
+
+  const productTitle = respone_json.title;
+  const productIngredients = respone_json.ingredients;
+
+  if (req.body.groupID) {
+    let allergies, preferences, dislikes = [];
+    let isLiked, isDisliked, isAllergic = 0;
+
+    Group.findOne({_id: req.body.groupID}).then((group) => {
+      group.members.forEach(member => {
+        Allergie.findOne({userID: member}).then(allergie => {
+          allergie.allergies.forEach(entry => {
+            if (!allergies.includes(entry)) allergies.push(entry)
+          })
+        });
+
+        Dislike.findOne({userID: member}).then(dislike => {
+          dislike.dislikes.forEach(entry => {
+            if (!allergies.includes(entry)) dislikes.push(entry)
+          })
+        });
+
+        Preference.findOne({userID: member}).then(preference => {
+          preference.preferences.forEach(entry => {
+            if (!allergies.includes(entry)) preferences.push(entry)
+          })
+        });
+
+        if (allergies.includes(productTitle)) isAllergic++;
+        if (preferences.includes(productTitle)) isLiked++;
+        if (dislikes.includes(productTitle)) isDisliked++;
+
+        productIngredients.forEach(product => {
+          if (allergies.includes(product.name)) isAllergic++;
+          if (preferences.includes(product.name)) isLiked++;
+          if (dislikes.includes(product.name)) isDisliked++;
+        })
+
+        if (isAllergic) {
+          res.status(200).json({productState: 'allergic', color: 'red', title: productTitle, ingredients: productIngredients})
+        } else if (isDisliked) {
+          res.status(200).json({productState: 'disliked', color: 'yellow', title: productTitle, ingredients: productIngredients})
+        } else if (isLiked) {
+          res.status(200).json({productState: 'liked', color: 'green', title: productTitle, ingredients: productIngredients})
+        } else {
+          res.status(200).json({productState: 'neutral', color: 'whites', title: productTitle, ingredients: productIngredients})
+        }
+      })
+    })
+  } else {
+    res.status(200).json({title: productTitle, ingredients: productIngredients})
+  }
+})
 
 /**
  * GET function that gets a specific product and searches/ rates all recipies that include the given product against a given group
@@ -197,8 +256,9 @@ app.post('/produkt', async (req, res) => {
 app.post('/login', async (req, res) => {
   User.findOne({userEmail: req.body.email, userPassword: req.body.password}).then((user) => {
     if (user) {
+      Token.deleteOne({userID: user._id.toString()}).then();
       const token = Math.random().toString(36).substr(2, 5);
-      new Token({userID: user._id, token: token}).save().then(() => {
+      new Token({userID: user._id.toString(), token: token}).save().then(() => {
         res.status(200).json({loginToken: token, userID: user._id})
       })
     } else {
