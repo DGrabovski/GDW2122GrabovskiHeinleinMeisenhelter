@@ -173,6 +173,8 @@ app.get('/user', authenticateUser, async (req, res) => {
 
 // list calls
 
+// allergies
+
 /**
  * Post function that adds all allergies
  * @Param String userID: query parameter of user posting allergies
@@ -239,6 +241,8 @@ app.get('/user/:userID/allergies', authenticateUser, async (req, res) => {
   })
 });
 
+// preferences
+
 /**
  * Post function that adds all preferences
  * @Param String userID: query parameter of user posting preferences
@@ -304,6 +308,8 @@ app.get('/user/:userID/preferences', authenticateUser, async (req, res) => {
     }
   })
 });
+
+// dislikes
 
 /**
  * Post function that adds all dislikes
