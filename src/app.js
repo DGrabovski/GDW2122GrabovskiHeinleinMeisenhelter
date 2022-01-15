@@ -290,7 +290,6 @@ app.get('/user/:userID/preferences', authenticateUser, async (req,res) => {
 })
 });
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * Post function that adds all dislikes
  * @Param String userID: query parameter of user posting dislikes
@@ -354,7 +353,6 @@ app.get('/user/:userID/dislikes', authenticateUser, async (req,res) => {
     }
 })
 });
-/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 // external api calls
