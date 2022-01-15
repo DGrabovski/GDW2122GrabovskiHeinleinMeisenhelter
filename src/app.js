@@ -3,6 +3,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const fetch = require("node-fetch");
 const mongoose = require("mongoose");
+const Group = require("../models/group");
 const User = require("../models/user");
 
 // setting up global variables
@@ -29,6 +30,23 @@ mongoose.connect(databaseUri)
   .catch(err => console.log(err));
 
 /**
+ * POST request that creates a group
+ * @Param string userID: parameter in the body, the id of the user that creates the group
+ * @Param string groupName: parameter in the body, name of the group
+ */
+app.post('/group', authenticateUser, async (req, res) => {
+  const userID = req.body.userID;
+  const groupName = req.body.groupName;
+
+  if (!userID || !groupName) {
+    res.status(400).json({mesage: 'incorect syntax, please try again'});
+  } else {
+    new Group({groupName: groupName, admin: userID}).save().then((group) => {
+      res.status(201).json({message: group});
+    })
+  }
+})
+/**
  * POST request that creates a user
  * @Param string userID: parameter in the body, the id of the user
  * @Param string userName: parameter in the body, name of the user
@@ -52,6 +70,43 @@ app.post('/user', async (req, res) => {
   }
 })
 
+/**
+ * GET function that returns a group by id
+ * @Param string groupID: query parametert by which the group is searched
+ */
+app.get('/group/:groupID', authenticateUser, async (req, res) => {
+  await Group.findById(req.params.groupID)
+    .then((group) => res.status(200).json({message: group}))
+    .catch(() => res.status(404).json({message: 'the group was not found'}));
+})
+
+/**
+ * DELETE function that deletes a group by id and admin-userID
+ * @Param string groupID: body parametert by which the group is searched
+ * @Param string userID: body parametert by which the admin is verified
+ * @Param string groupName: body parametert by which the group is verified
+ */
+app.delete('/group/:groupID', authenticateUser, async (req, res) => {
+  Group.findOne({
+    _id: req.params.groupID,
+    groupName: req.body.groupName,
+    admin: req.body.userID
+  }).then((group) => {
+    if (group) {
+      Group.deleteOne({
+        _id: req.params.groupID,
+        groupName: req.body.groupName,
+        admin: req.body.userID
+      }).then(() => {
+        res.status(200).json({message: 'group was deleted'})
+      });
+    } else {
+      res.status(404).json({message: 'the group was not found'});
+    }
+  })
+})
+
+// Example call to the external API -> POC
 /**
  * GET function that returns a user by id
  * @Param string userID: query parametert by which the user is searched
