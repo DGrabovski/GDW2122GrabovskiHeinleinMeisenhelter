@@ -28,7 +28,11 @@ mongoose.connect(databaseUri)
   })
   .catch(err => console.log(err));
 
-// request that creates a group
+/**
+ * POST request that creates a group
+ * @Param string userID: parameter in the body, the id of the user that creates the group
+ * @Param string groupName: parameter in the body, name of the group
+ */
 app.post('/group', authenticateUser, async (req, res) => {
   const userID = req.body.userID;
   const groupName = req.body.groupName;
@@ -42,6 +46,17 @@ app.post('/group', authenticateUser, async (req, res) => {
   }
 })
 
+/**
+ * GET function that returns a group by id
+ * @Param string groupID: query parametert by which the group is searched
+ */
+app.get('/group', authenticateUser, async (req, res) => {
+  await Group.findById(req.query.groupID).then((group) => {
+    res.status(200).json({message: group});
+  });
+})
+
+// Example call to the external API -> POC
 app.post('/produkt', async (req, res) => {
   const url = `${apiUrl}food/products/upc/${req.body.upc}${apiKeyAlwin}`;
   const fetch_response = await fetch(url);
@@ -50,7 +65,8 @@ app.post('/produkt', async (req, res) => {
 })
 
 
-// function that is used to verify is the user is logged in/ has verification
+// middleware function that is used to verify is the user is logged in/ has verification
 function authenticateUser(req, res, next) {
+  next();
   // TODO: implement code that verifies the logged in user else throw 401 error
 }
