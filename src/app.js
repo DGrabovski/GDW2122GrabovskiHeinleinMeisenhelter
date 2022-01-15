@@ -290,7 +290,71 @@ app.get('/user/:userID/preferences', authenticateUser, async (req,res) => {
 })
 });
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * Post function that adds all dislikes
+ * @Param String userID: query parameter of user posting dislikes
+ * @Param string dislikes: preference parameter
+ */
+ app.post('/user/:userID/dislikes', authenticateUser, async (req,res)=>{
+  try {
+      if(!req.params.userID || !req.body.dislikes) throw Error('Incorect syntax, please try again');
+      await new Dislike({userID: req.params.userID, dislikes: req.body.dislikes}).save().then((dislikes) => {
+        res.status(201).json({message: dislikes});
+      });
+  } catch (error) {
+      res.status(400).json({msg:error});
+  }
+});
 
+/**
+ * PATCH function that updates dislikes
+ * @Param String userID: query parameter of user updating dislikes
+ */
+app.patch('/user/:userID/dislikes', authenticateUser, async (req,res) => {
+  Dislike.findOne({userID: req.params.userID}).then((dislike) => {
+    if(dislike) {
+        dislike.dislikes = req.body.dislikes;
+        dislike.save().then(() => {
+          res.status(200).json({message: 'dislikes were updated'})
+        })
+    } else {
+        res.status(404).json({message: 'no dislikes were found'});
+    }
+})
+});
+
+/**
+ * Delete function that deletes all dislikes
+ * @Param String userID: query parameter of user deleting dislikes
+ */
+ app.delete('/user/:userID/dislikes', authenticateUser, async (req,res) =>{
+  Dislike.findOne({userID: req.params.userID}).then((dislike) => {
+      if(dislike) {
+          Dislike.deleteOne({userID: req.params.userID}).then(() => {
+            res.status(200).json({message: 'dislikes were removed'})            
+          })
+      } else {
+          res.status(404).json({message: 'no dislikes were found'});
+      }
+  })
+});
+
+/**
+ * GET function that shows all dislikes of one user
+ * @Param String userID: query parameter of user geting his list of dislikes
+ * @Param string dislike: preference parameter
+ */
+app.get('/user/:userID/dislikes', authenticateUser, async (req,res) => {
+  Dislike.findOne({userID: req.params.userID}).then((dislikes) => {
+    if(dislikes) {
+          res.status(200).json({message: dislikes})            
+    } else {
+        res.status(404).json({message: 'no dislikes were found'});
+    }
+})
+});
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 // external api calls
