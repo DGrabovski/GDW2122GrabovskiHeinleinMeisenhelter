@@ -5,7 +5,7 @@ const userSchema = new Schema({
 	userID: {
 		type: String,
 		require: true
-	}
+	},
 	userName: {
 		type: String,
 		required: true
@@ -17,13 +17,13 @@ const userSchema = new Schema({
 	userEmail: {
 		type: String,
 		require: true
-	}
+	},
 	userPassword: {
 		type: String,
 		require: true
   }
 }, {
-  timestamps: true,
+  timestamps: true
 });
 
 const User = mongoose.model('User', userSchema);
