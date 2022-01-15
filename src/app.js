@@ -5,6 +5,7 @@ const fetch = require("node-fetch");
 const mongoose = require("mongoose");
 const Group = require("../models/group");
 const User = require("../models/user");
+const Token = require("../models/token");
 
 // setting up global variables
 const apiKeyAlwin = '?apiKey=397d585aa35c4b1b8b27beda022fd95f';
@@ -171,9 +172,43 @@ app.post('/produkt', async (req, res) => {
 
 // middleware and login/out calls
 
+/**
+ * POST function thats logs in the user
+ * @Param string email: the email to get an user
+ * @Param string password: to verify the user
+ */
+app.post('/login', async (req, res) => {
+  User.findOne({userEmail: req.body.email, userPassword: req.body.password}).then((user) => {
+    if (user) {
+      const token = Math.random().toString(36).substr(2, 5);
+      new Token({userID: user._id, token: token}).save().then(() => {
+        res.status(200).json({loginToken: token, userID: user._id})
+      })
+    } else {
+      res.status(404).json({message: 'email or password incorrect'})
+    }
+  })
+})
+
+/**
+ * POST function that logs out the user
+ * @Param string userID: id of the user that should be logged out
+ * @Param string token: the token to identify the user
+ */
+app.post('/logout', authenticateUser, async (req, res) => {
+  Token.deleteOne({userID: req.body.userID, token: req.body.token}).then(() => {
+    res.status(200).json({message: 'you have been logged out'})
+  })
+})
+
 // middleware function that is used to verify is the user is logged in/ has verification
 // @Param string loginToken: the token that is used to verify the user
 function authenticateUser(req, res, next) {
-  next();
-  // TODO: implement code that verifies the logged in user else throw 401 error
+  Token.findOne({userID: req.body.userID, token: req.body.token}).then((token) => {
+    if (token) {
+      next();
+    } else {
+      res.status(403).json({message: 'you dont have permission for this action'})
+    }
+  })
 }
