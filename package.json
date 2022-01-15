@@ -19,6 +19,7 @@
   "homepage": "https://github.com/DGrabovski/GDW2122GrabovskiHeinleinMeisenhelter#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "mongoose": "^6.1.6",
     "node-fetch": "2.6.5",
