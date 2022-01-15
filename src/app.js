@@ -170,8 +170,8 @@ app.get('/user', authenticateUser, async (req, res) => {
 app.post('/user/:userID/allergies', authenticateUser, async (req,res)=>{
   try {
       if(!req.params.userID || !req.body.allergies) throw Error('Incorect syntax, please try again');
-      await new Allergie({userID: req.params.userID, allergies: req.body.allergies}).save().then((allergie) => {
-        res.status(201).json({message: allergie});
+      await new Allergie({userID: req.params.userID, allergies: req.body.allergies}).save().then((allergies) => {
+        res.status(201).json({message: allergies});
       });
   } catch (error) {
       res.status(400).json({msg:error});
@@ -187,10 +187,10 @@ app.patch('/user/:userID/allergies', authenticateUser, async (req,res) => {
     if(allergie) {
         allergie.allergies = req.body.allergies;
         allergie.save().then(() => {
-          res.status(200).json({message: 'allergie was updated'})
+          res.status(200).json({message: 'allergies were updated'})
         })
     } else {
-        res.status(404).json({message: 'the allergie was not found'});
+        res.status(404).json({message: 'the allergies were not found'});
     }
 })
 });
@@ -203,10 +203,10 @@ app.patch('/user/:userID/allergies', authenticateUser, async (req,res) => {
   Allergie.findOne({userID: req.params.userID}).then((allergie) => {
       if(allergie) {
           Allergie.deleteOne({userID: req.params.userID}).then(() => {
-            res.status(200).json({message: 'allergie was removed'})            
+            res.status(200).json({message: 'allergies were removed'})            
           })
       } else {
-          res.status(404).json({message: 'the allergie was not found'});
+          res.status(404).json({message: 'the allergies were not found'});
       }
   })
 });
@@ -217,11 +217,11 @@ app.patch('/user/:userID/allergies', authenticateUser, async (req,res) => {
  * @Param string allergie: allergie parameter
  */
 app.get('/user/:userID/allergies', authenticateUser, async (req,res) => {
-  Allergie.findOne({userID: req.params.userID}).then((allergie) => {
-    if(allergie) {
+  Allergie.findOne({userID: req.params.userID}).then((allergies) => {
+    if(allergies) {
           res.status(200).json({message: allergies})            
     } else {
-        res.status(404).json({message: 'the allergie was not found'});
+        res.status(404).json({message: 'the allergies were not found'});
     }
 })
 });
