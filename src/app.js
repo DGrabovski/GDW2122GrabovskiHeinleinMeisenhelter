@@ -123,7 +123,7 @@ app.post('/user', async (req, res) => {
   const userPassword = req.body.userPassword;
 
   if (!userName || !userSurname || !userEmail || !userPassword) {
-    res.status(400).json({mesage: 'incorect syntax, please try again'});
+    res.status(400).json({message: 'incorrect syntax, please try again'});
   } else {
     new User( {userName: userName, userSurname: userSurname, userEmail: userEmail, userPassword: userPassword}).save().then(() => {
       res.status(201).json({message: 'user was created'});
@@ -148,13 +148,13 @@ app.patch('/user/:userID', authenticateUser, async (req, res) => {
     const userPassword = req.body.userPassword;
     
     if (!userName || !userSurname || !userEmail || !userPassword) {
-    res.status(400).json({mesage: 'incorect syntax, please try again'});
+    res.status(400).json({message: 'incorrect syntax, please try again'});
   } else {
-    User.findById({
+    User.findOne({
         _id: _id
     }).then((user) => {
         if(user) {
-            User.save({
+            user.updateOne({
               _id: _id,
               userName: userName,
               userSurname: userSurname,
@@ -187,7 +187,7 @@ app.get('/user/:userID', authenticateUser, async (req, res) => {
  */
 app.delete('/user/:userID', authenticateUser, async (req, res) => {
         User.findOne({
-            _id: req.params.userId,
+            _id: req.params.userID,
             userPassword: req.body.userPassword
         }).then((user) => {
             if (user) {
@@ -213,7 +213,7 @@ app.delete('/user/:groupID/:userID', authenticateUser, async (req, res) => {
     _id: req.params.groupID
   }).then((group) => {
     if (group) {
-        group.members.pull(req.params.userID);
+        group.members.splice(group.members.indexOf(req.params.userID), 1);
         group.save();
         res.status(200).json({message: 'User deleted from group'})
         
@@ -222,6 +222,7 @@ app.delete('/user/:groupID/:userID', authenticateUser, async (req, res) => {
     }
   })
 })
+
 // list calls
 
 // external api calls
