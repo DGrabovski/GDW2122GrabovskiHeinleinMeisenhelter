@@ -5,6 +5,9 @@ const fetch = require("node-fetch");
 const mongoose = require("mongoose");
 const Group = require("../models/group");
 const User = require("../models/user");
+const Allergie = require("../models/allergies");
+const Preference = require("../models/preferences");
+const Dislike = require("../models/dislikes");
 const Token = require("../models/token");
 const cors = require("cors");
 
@@ -146,7 +149,13 @@ app.post('/user', async (req, res) => {
   if (!userID || !userName || !userSurname || !userEmail || !userPassword) {
     res.status(400).json({mesage: 'incorect syntax, please try again'});
   } else {
-    new User( {userID: userID, userName: userName, userSurname: userSurname, userEmail: userEmail, userPassword: userPassword}).save().then(() => {
+    new User({
+      userID: userID,
+      userName: userName,
+      userSurname: userSurname,
+      userEmail: userEmail,
+      userPassword: userPassword
+    }).save().then(() => {
       res.status(201).json({message: 'user was created'});
     })
   }
@@ -163,6 +172,205 @@ app.get('/user', authenticateUser, async (req, res) => {
 })
 
 // list calls
+
+/**
+ * Post function that adds all allergies
+ * @Param String userID: query parameter of user posting allergies
+ * @Param string allergie: allergie parameter
+ */
+app.post('/user/:userID/allergies', authenticateUser, async (req, res) => {
+  const userID = req.params.userID;
+  const allergies = req.body.allergies;
+
+  if (!userID || !allergies) {
+    res.status(400).json({mesage: 'incorect syntax, please try again'});
+  } else {
+    new Allergie({userID: userID, allergies: allergies}).save().then((allergies) => {
+      res.status(201).json({message: allergies});
+    });
+  }
+});
+
+/**
+ * PATCH function that updates allergies
+ * @Param String userID: query parameter of user updating allergies
+ */
+app.patch('/user/:userID/allergies', authenticateUser, async (req, res) => {
+  Allergie.findOne({userID: req.params.userID}).then((allergie) => {
+    if (allergie) {
+      allergie.allergies = req.body.allergies;
+      allergie.save().then(() => {
+        res.status(200).json({message: 'allergies were updated'})
+      })
+    } else {
+      res.status(404).json({message: 'no allergies were found'});
+    }
+  })
+});
+
+/**
+ * Delete function that deletes all allergies
+ * @Param String userID: query parameter of user deleting allergies
+ */
+app.delete('/user/:userID/allergies', authenticateUser, async (req, res) => {
+  Allergie.findOne({userID: req.params.userID}).then((allergie) => {
+    if (allergie) {
+      Allergie.deleteOne({userID: req.params.userID}).then(() => {
+        res.status(200).json({message: 'allergies were removed'})
+      })
+    } else {
+      res.status(404).json({message: 'no allergies were found'});
+    }
+  })
+});
+
+/**
+ * GET function that shows all allergies of one user
+ * @Param String userID: query parameter of user geting his list of allergies
+ * @Param string allergie: allergie parameter
+ */
+app.get('/user/:userID/allergies', authenticateUser, async (req, res) => {
+  Allergie.findOne({userID: req.params.userID}).then((allergies) => {
+    if (allergies) {
+      res.status(200).json({message: allergies})
+    } else {
+      res.status(404).json({message: 'no allergies were found'});
+    }
+  })
+});
+
+/**
+ * Post function that adds all preferences
+ * @Param String userID: query parameter of user posting preferences
+ * @Param string preferences: preference parameter
+ */
+app.post('/user/:userID/preferences', authenticateUser, async (req, res) => {
+  const userID = req.params.userID;
+  const preferences = req.body.preferences;
+
+  if (!userID || !preferences) {
+    res.status(400).json({mesage: 'incorect syntax, please try again'});
+  } else {
+    new Preference({userID: userID, preferences: preferences}).save().then((preference) => {
+      res.status(201).json({message: preference});
+    });
+  }
+});
+
+/**
+ * PATCH function that updates preferences
+ * @Param String userID: query parameter of user updating preferences
+ */
+app.patch('/user/:userID/preferences', authenticateUser, async (req, res) => {
+  Preference.findOne({userID: req.params.userID}).then((preference) => {
+    if (preference) {
+      preference.preferences = req.body.preferences;
+      preference.save().then(() => {
+        res.status(200).json({message: 'preferences were updated'})
+      })
+    } else {
+      res.status(404).json({message: 'no preferences were found'});
+    }
+  })
+});
+
+/**
+ * Delete function that deletes all preferences
+ * @Param String userID: query parameter of user deleting preferences
+ */
+app.delete('/user/:userID/preferences', authenticateUser, async (req, res) => {
+  Preference.findOne({userID: req.params.userID}).then((preference) => {
+    if (preference) {
+      Preference.deleteOne({userID: req.params.userID}).then(() => {
+        res.status(200).json({message: 'preferences were removed'})
+      })
+    } else {
+      res.status(404).json({message: 'no preferences were found'});
+    }
+  })
+});
+
+/**
+ * GET function that shows all preferences of one user
+ * @Param String userID: query parameter of user geting his list of preferences
+ * @Param string preference: preference parameter
+ */
+app.get('/user/:userID/preferences', authenticateUser, async (req, res) => {
+  Preference.findOne({userID: req.params.userID}).then((preferences) => {
+    if (preferences) {
+      res.status(200).json({message: preferences})
+    } else {
+      res.status(404).json({message: 'no preferences were found'});
+    }
+  })
+});
+
+/**
+ * Post function that adds all dislikes
+ * @Param String userID: query parameter of user posting dislikes
+ * @Param string dislikes: preference parameter
+ */
+app.post('/user/:userID/dislikes', authenticateUser, async (req, res) => {
+  const userID = req.params.userID;
+  const dislikes = req.body.dislikes;
+
+  if (!userID || !dislikes) {
+    res.status(400).json({mesage: 'incorect syntax, please try again'});
+  } else {
+    new Dislike({userID: userID, dislikes: dislikes}).save().then((dislike) => {
+      res.status(201).json({message: dislike});
+    });
+  }
+});
+
+/**
+ * PATCH function that updates dislikes
+ * @Param String userID: query parameter of user updating dislikes
+ */
+app.patch('/user/:userID/dislikes', authenticateUser, async (req, res) => {
+  Dislike.findOne({userID: req.params.userID}).then((dislike) => {
+    if (dislike) {
+      dislike.dislikes = req.body.dislikes;
+      dislike.save().then(() => {
+        res.status(200).json({message: 'dislikes were updated'})
+      })
+    } else {
+      res.status(404).json({message: 'no dislikes were found'});
+    }
+  })
+});
+
+/**
+ * Delete function that deletes all dislikes
+ * @Param String userID: query parameter of user deleting dislikes
+ */
+app.delete('/user/:userID/dislikes', authenticateUser, async (req, res) => {
+  Dislike.findOne({userID: req.params.userID}).then((dislike) => {
+    if (dislike) {
+      Dislike.deleteOne({userID: req.params.userID}).then(() => {
+        res.status(200).json({message: 'dislikes were removed'})
+      })
+    } else {
+      res.status(404).json({message: 'no dislikes were found'});
+    }
+  })
+});
+
+/**
+ * GET function that shows all dislikes of one user
+ * @Param String userID: query parameter of user geting his list of dislikes
+ * @Param string dislike: preference parameter
+ */
+app.get('/user/:userID/dislikes', authenticateUser, async (req, res) => {
+  Dislike.findOne({userID: req.params.userID}).then((dislikes) => {
+    if (dislikes) {
+      res.status(200).json({message: dislikes})
+    } else {
+      res.status(404).json({message: 'no dislikes were found'});
+    }
+  })
+});
+
 
 // external api calls
 
