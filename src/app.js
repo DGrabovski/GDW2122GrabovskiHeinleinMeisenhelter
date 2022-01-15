@@ -50,8 +50,8 @@ app.post('/group', authenticateUser, async (req, res) => {
  * GET function that returns a group by id
  * @Param string groupID: query parametert by which the group is searched
  */
-app.get('/group', authenticateUser, async (req, res) => {
-  await Group.findById(req.query.groupID)
+app.get('/group/:groupID', authenticateUser, async (req, res) => {
+  await Group.findById(req.params.groupID)
     .then((group) => res.status(200).json({message: group}))
     .catch(() => res.status(404).json({message: 'the group was not found'}));
 })
@@ -62,15 +62,15 @@ app.get('/group', authenticateUser, async (req, res) => {
  * @Param string userID: body parametert by which the admin is verified
  * @Param string groupName: body parametert by which the group is verified
  */
-app.delete('/group', authenticateUser, async (req, res) => {
+app.delete('/group/:groupID', authenticateUser, async (req, res) => {
   Group.findOne({
-    _id: req.body.groupID,
+    _id: req.params.groupID,
     groupName: req.body.groupName,
     admin: req.body.userID
   }).then((group) => {
     if (group) {
       Group.deleteOne({
-        _id: req.body.groupID,
+        _id: req.params.groupID,
         groupName: req.body.groupName,
         admin: req.body.userID
       }).then(() => {
