@@ -2,10 +2,14 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const allergieSchema = new Schema({
-  allergie: {
-    type: String,
-    required: true
-  }
+    userID: {
+		type: String,
+		require: true
+	},
+    allergies: {
+        type: [String],
+        required: true
+    }
 },
 {
   timestamps: true,
