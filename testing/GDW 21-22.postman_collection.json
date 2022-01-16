@@ -1,0 +1,838 @@
+{
+	"info": {
+		"_postman_id": "55159906-f4f0-4b1d-b2d2-809c73d72310",
+		"name": "GDW 21/22",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "User Calls",
+			"item": [
+				{
+					"name": "CREATE new User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userName\": \"Meisenhelter\",\n    \"userSurname\": \"Alwin\",\n    \"userEmail\": \"test@test.de\",\n    \"userPassword\": \"test\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/user",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UPDATE User",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userName\": \"Meisenhelter\",\n    \"userSurname\": \"Alwin Frank\",\n    \"userEmail\": \"test@test.de\",\n    \"userPassword\": \"test\",\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/user/{{userID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"{{userID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET User",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/user/{{userID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"{{userID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\",\n    \"userPassword\": \"test\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/user/{{userID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"{{userID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "LEAVE Group",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/user/{{groupID}}/{{userID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"{{groupID}}",
+								"{{userID}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody)",
+									"pm.environment.set(\"userID\", jsonData.userID);",
+									"pm.environment.set(\"token\", jsonData.loginToken);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@test.de\",\n    \"password\": \"test\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/login",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.environment.unset(\"userID\");",
+									"pm.environment.unset(\"token\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/logout",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "List Calls",
+			"item": [
+				{
+					"name": "Dislikes",
+					"item": [
+						{
+							"name": "CREATE Dislikes",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"dislikes\": [\n        \"tomato\"\n    ],\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/user/{{userID}}/dislikes",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"user",
+										"{{userID}}",
+										"dislikes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "UPDATE Dislikes",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"dislikes\": [\n        \"tomato\",\n        \"vinegar\"\n    ],\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/user/{{userID}}/dislikes",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"user",
+										"{{userID}}",
+										"dislikes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Dislikes",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/user/{{userID}}/dislikes",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"user",
+										"{{userID}}",
+										"dislikes"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE Dislikes",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/user/{{userID}}/dislikes",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"user",
+										"{{userID}}",
+										"dislikes"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Preferences",
+					"item": [
+						{
+							"name": "CREATE Preferences",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"preferences\": [\n        \"chicken\"\n    ],\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/user/{{userID}}/preferences",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"user",
+										"{{userID}}",
+										"preferences"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "UPDATE Preferences",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"preferences\": [\n        \"chicken\",\n        \"pork\",\n        \"potatoes\"\n    ],\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/user/{{userID}}/preferences",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"user",
+										"{{userID}}",
+										"preferences"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Preferences",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/user/{{userID}}/preferences",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"user",
+										"{{userID}}",
+										"preferences"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE Preferences",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/user/{{userID}}/preferences",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"user",
+										"{{userID}}",
+										"preferences"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Allergies",
+					"item": [
+						{
+							"name": "CREATE Allergies",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"allergies\": [\n        \"peanuts\"\n    ],\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/user/{{userID}}/allergies",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"user",
+										"{{userID}}",
+										"allergies"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "UPDATE Allergies",
+							"request": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"allergies\": [\n        \"peanuts\",\n        \"milk\"\n    ],\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/user/{{userID}}/allergies",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"user",
+										"{{userID}}",
+										"allergies"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GET Allergies",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "GET",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/user/{{userID}}/allergies",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"user",
+										"{{userID}}",
+										"allergies"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "DELETE Allergies",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{url}}/user/{{userID}}/allergies",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"user",
+										"{{userID}}",
+										"allergies"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Group Calls",
+			"item": [
+				{
+					"name": "CREATE Group",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody)",
+									"if (jsonData.message._id) {",
+									"    pm.environment.set(\"groupID\", jsonData.message._id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"groupName\": \"Test Gruppe 1\",\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/group",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"group"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Group",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"groupName\": \"Test Gruppe 1\",\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/group/{{groupID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"group",
+								"{{groupID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET Group",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/group/{{groupID}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"group",
+								"{{groupID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ADD User to Group",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/group/{{groupID}}/001",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"group",
+								"{{groupID}}",
+								"001"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE User from Group",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/group/{{groupID}}/001",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"group",
+								"{{groupID}}",
+								"001"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "External API",
+			"item": [
+				{
+					"name": "PRODUCT Call to external API",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"upc\": \"033383533100\",\n    \"groupID\": \"{{groupID}}\",\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/product",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"product"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RECIPE Call to external API",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"upc\": \"033383533100\",\n    \"groupID\": \"{{groupID}}\",\n    \"token\": \"{{token}}\",\n    \"userID\": \"{{userID}}\",\n    \"recipesAmount\": 5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/recipe",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"recipe"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
