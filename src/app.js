@@ -12,7 +12,7 @@ const Token = require("../models/token");
 const cors = require("cors");
 
 // setting up global variables
-const apiKeyAlwin = '?apiKey=397d585aa35c4b1b8b27beda022fd95f';
+const apiKeyAlwin = 'apiKey=397d585aa35c4b1b8b27beda022fd95f';
 const apiUrl = 'https://api.spoonacular.com/'
 
 // creating express server
@@ -491,13 +491,16 @@ app.get('/user/:userID/dislikes', authenticateUser, async (req, res) => {
  * @Param string groupID: used to get the group to check the preferences ...
  */
 app.get('/product', authenticateUser, async (req, res) => {
+  // set the url for the product call and make the call
   const url = `${apiUrl}food/products/upc/${req.body.upc}${apiKeyAlwin}`;
-  const fetch_response = await fetch(url);
-  const respone_json = await fetch_response.json();
+  const fetchResponse = await fetch(url);
+  const responeJson = await fetchResponse.json();
 
-  const productTitle = respone_json.title;
-  const productIngredients = respone_json.ingredients;
+  // get title and ingredients from product
+  const productTitle = responeJson.title;
+  const productIngredients = responeJson.ingredients;
 
+  // check if groupID was given in request
   if (req.body.groupID) {
     await Group.findOne({_id: req.body.groupID}).then(async (group) => {
       if (group) {
@@ -509,6 +512,7 @@ app.get('/product', authenticateUser, async (req, res) => {
         let isAllergic = 0;
 
         for (const member of group.members) {
+          // get all allergies, dislikes and preferences of the group members
           await Allergie.findOne({userID: member}).then(allergie => {
             allergie.allergies.forEach(entry => {
               if (!allergies.includes(entry)) allergies.push(entry)
@@ -527,10 +531,7 @@ app.get('/product', authenticateUser, async (req, res) => {
             })
           });
 
-          if (allergies.includes(productTitle)) isAllergic++;
-          if (preferences.includes(productTitle)) isLiked++;
-          if (dislikes.includes(productTitle)) isDisliked++;
-
+          // check if product ingredients match with entries of the lists above
           try {
             productIngredients.forEach(product => {
               if (allergies.includes(product.name)) isAllergic++;
@@ -539,6 +540,7 @@ app.get('/product', authenticateUser, async (req, res) => {
             })
           } catch (error) {}
 
+          // return the right productState
           if (isAllergic) {
             res.status(200).json({
               productState: 'allergic',
@@ -578,9 +580,88 @@ app.get('/product', authenticateUser, async (req, res) => {
  * GET function that gets a specific product and searches/ rates all recipies that include the given product against a given group
  * @Param string upc: the product that should be included in the recipies
  * @Param string groupID: used to get the group and check the preferences ...
- * @Param boolean random: option to generate a random recipie for inspiration
+ * @Param number recipesAmount: Amount of recipes that should be suggested
  */
-// TODO: implement function
+app.get('/recipe', authenticateUser, async (req, res) => {
+  // set variables
+  let allergies = []
+  let preferences = [];
+  let dislikes = [];
+  let recipes = [];
+  // set the number of recipes that should be suggested
+  const numberOfRecipes = req.body.recipesAmount;
+
+  // get the group, and its lists, for which the recipes are beeing rated
+  await Group.findOne({_id: req.body.groupID}).then(async (group) => {
+    if (group) {
+      for (const member of group.members) {
+        // get all allergies, dislikes and preferences of the group members
+        await Allergie.findOne({userID: member}).then(allergie => {
+          allergie.allergies.forEach(entry => {
+            if (!allergies.includes(entry)) allergies.push(entry)
+          })
+        });
+
+        await Dislike.findOne({userID: member}).then(dislike => {
+          dislike.dislikes.forEach(entry => {
+            if (!dislikes.includes(entry)) dislikes.push(entry)
+          })
+        });
+
+        await Preference.findOne({userID: member}).then(preference => {
+          preference.preferences.forEach(entry => {
+            if (!preferences.includes(entry)) preferences.push(entry)
+          })
+        });
+      }
+    } else {
+      res.status(400).json({message: 'group does not exist'});
+    }
+  })
+
+  // call to get the product that should be included in the recipes
+  const productUrl = `${apiUrl}food/products/upc/${req.body.upc}?${apiKeyAlwin}`;
+  const productFetchResponse = await fetch(productUrl);
+  const productResponeJson = await productFetchResponse.json();
+  let productIngredients = '';
+
+  // get ingredients from product
+  productResponeJson.ingredients.forEach(entry => {
+    if (productIngredients.length) {
+      productIngredients = productIngredients + ',+' + entry.name
+    } else productIngredients = productIngredients + entry.name;
+  })
+
+  // request to get recipes
+  const recipeUrl = `${apiUrl}recipes/findByIngredients?ingredients=${productIngredients}&number=${numberOfRecipes}&${apiKeyAlwin}`;
+  const recipeFetchResponse = await fetch(recipeUrl);
+  const recipeResponeJson = await recipeFetchResponse.json();
+
+  // get recipe information for every recipe
+  for (const recipe of recipeResponeJson) {
+    const recipeInformationUrl = `${apiUrl}recipes/${recipe.id}/information?includeNutrition=false&${apiKeyAlwin}`;
+    const recipeInformation = await fetch(recipeInformationUrl)
+    const informationJson = await recipeInformation.json();
+    const recipeIngredients = informationJson.extendedIngredients;
+
+    let isLiked = 0;
+    let isDisliked = 0;
+    let isAllergic = 0;
+
+    // check preferences, allergies and dislikes for every ingerient of the recipe
+    try {
+      recipeIngredients.forEach(product => {
+        if (allergies.includes(product.name)) isAllergic++;
+        if (preferences.includes(product.name)) isLiked++;
+        if (dislikes.includes(product.name)) isDisliked++;
+      })
+    } catch (error) {}
+
+    // return the recipe rating
+    recipes.push({recipeTitle: recipe.title, rating: {isLiked, isAllergic, isDisliked}})
+  }
+  res.status(200).json(recipes);
+})
 
 // middleware and login/out calls
 
