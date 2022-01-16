@@ -499,69 +499,75 @@ app.get('/product', authenticateUser, async (req, res) => {
   const productIngredients = respone_json.ingredients;
 
   if (req.body.groupID) {
-    let allergies, preferences, dislikes = [];
-    let isLiked, isDisliked, isAllergic = 0;
+    await Group.findOne({_id: req.body.groupID}).then(async (group) => {
+      if (group) {
+        let allergies = []
+        let preferences = [];
+        let dislikes = [];
+        let isLiked = 0;
+        let isDisliked = 0;
+        let isAllergic = 0;
 
-    Group.findOne({_id: req.body.groupID}).then((group) => {
-      group.members.forEach(member => {
-        Allergie.findOne({userID: member}).then(allergie => {
-          allergie.allergies.forEach(entry => {
-            if (!allergies.includes(entry)) allergies.push(entry)
-          })
-        });
+        for (const member of group.members) {
+          await Allergie.findOne({userID: member}).then(allergie => {
+            allergie.allergies.forEach(entry => {
+              if (!allergies.includes(entry)) allergies.push(entry)
+            })
+          });
 
-        Dislike.findOne({userID: member}).then(dislike => {
-          dislike.dislikes.forEach(entry => {
-            if (!allergies.includes(entry)) dislikes.push(entry)
-          })
-        });
+          await Dislike.findOne({userID: member}).then(dislike => {
+            dislike.dislikes.forEach(entry => {
+              if (!dislikes.includes(entry)) dislikes.push(entry)
+            })
+          });
 
-        Preference.findOne({userID: member}).then(preference => {
-          preference.preferences.forEach(entry => {
-            if (!allergies.includes(entry)) preferences.push(entry)
-          })
-        });
+          await Preference.findOne({userID: member}).then(preference => {
+            preference.preferences.forEach(entry => {
+              if (!preferences.includes(entry)) preferences.push(entry)
+            })
+          });
 
-        if (allergies.includes(productTitle)) isAllergic++;
-        if (preferences.includes(productTitle)) isLiked++;
-        if (dislikes.includes(productTitle)) isDisliked++;
+          if (allergies.includes(productTitle)) isAllergic++;
+          if (preferences.includes(productTitle)) isLiked++;
+          if (dislikes.includes(productTitle)) isDisliked++;
 
-        productIngredients.forEach(product => {
-          if (allergies.includes(product.name)) isAllergic++;
-          if (preferences.includes(product.name)) isLiked++;
-          if (dislikes.includes(product.name)) isDisliked++;
-        })
+          try {
+            productIngredients.forEach(product => {
+              if (allergies.includes(product.name)) isAllergic++;
+              if (preferences.includes(product.name)) isLiked++;
+              if (dislikes.includes(product.name)) isDisliked++;
+            })
+          } catch (error) {}
 
-        if (isAllergic) {
-          res.status(200).json({
-            productState: 'allergic',
-            color: 'red',
-            title: productTitle,
-            ingredients: productIngredients
-          })
-        } else if (isDisliked) {
-          res.status(200).json({
-            productState: 'disliked',
-            color: 'yellow',
-            title: productTitle,
-            ingredients: productIngredients
-          })
-        } else if (isLiked) {
-          res.status(200).json({
-            productState: 'liked',
-            color: 'green',
-            title: productTitle,
-            ingredients: productIngredients
-          })
-        } else {
-          res.status(200).json({
-            productState: 'neutral',
-            color: 'whites',
-            title: productTitle,
-            ingredients: productIngredients
-          })
+          if (isAllergic) {
+            res.status(200).json({
+              productState: 'allergic',
+              color: 'red',
+              title: productTitle
+            })
+          } else if (isDisliked) {
+            res.status(200).json({
+              productState: 'disliked',
+              color: 'yellow',
+              title: productTitle
+            })
+          } else if (isLiked) {
+            res.status(200).json({
+              productState: 'liked',
+              color: 'green',
+              title: productTitle
+            })
+          } else {
+            res.status(200).json({
+              productState: 'neutral',
+              color: 'white',
+              title: productTitle
+            })
+          }
         }
-      })
+      } else {
+        res.status(400).json({message: 'group does not exist'});
+      }
     })
   } else {
     res.status(200).json({title: productTitle, ingredients: productIngredients})
