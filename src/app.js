@@ -243,7 +243,6 @@ app.delete('/user/:groupID/:userID', authenticateUser, async (req, res) => {
       group.members.splice(group.members.indexOf(req.params.userID), 1);
       group.save();
       res.status(200).json({message: 'User deleted from group'})
-
     } else {
       res.status(404).json({message: 'the group was not found'});
     }
