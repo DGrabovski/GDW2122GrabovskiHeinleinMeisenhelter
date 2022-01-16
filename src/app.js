@@ -125,7 +125,12 @@ app.post('/user', async (req, res) => {
   if (!userName || !userSurname || !userEmail || !userPassword) {
     res.status(400).json({message: 'incorrect syntax, please try again'});
   } else {
-    new User( {userName: userName, userSurname: userSurname, userEmail: userEmail, userPassword: userPassword}).save().then(() => {
+    new User({
+      userName: userName,
+      userSurname: userSurname,
+      userEmail: userEmail,
+      userPassword: userPassword
+    }).save().then(() => {
       res.status(201).json({message: 'user was created'});
     })
   }
@@ -138,36 +143,36 @@ app.post('/user', async (req, res) => {
  * @Param string surname: parameter in the body, new Surname of the User
  * @Param string Email: parameter in the body, new Email of the User
  * @Param string Password: parameter in the body, new passwort of the User
- * 
+ *
  */
 app.patch('/user/:userID', authenticateUser, async (req, res) => {
-    const _id = req.params.userID; 
-    const userName = req.body.userName;
-    const userSurname = req.body.userSurname;
-    const userEmail = req.body.userEmail;
-    const userPassword = req.body.userPassword;
-    
-    if (!userName || !userSurname || !userEmail || !userPassword) {
+  const _id = req.params.userID;
+  const userName = req.body.userName;
+  const userSurname = req.body.userSurname;
+  const userEmail = req.body.userEmail;
+  const userPassword = req.body.userPassword;
+
+  if (!userName || !userSurname || !userEmail || !userPassword) {
     res.status(400).json({message: 'incorrect syntax, please try again'});
   } else {
     User.findOne({
-        _id: _id
+      _id: _id
     }).then((user) => {
-        if(user) {
-            user.updateOne({
-              _id: _id,
-              userName: userName,
-              userSurname: userSurname,
-              userEmail: userEmail,
-              userPassword: userPassword
-            }).then(() => {
-                res.status(200).json({message: 'user is updated'})
-            });
-        } else {
-            res.status(404).json({message: 'user not found'});
-        }   
-        })
-    }
+      if (user) {
+        user.updateOne({
+          _id: _id,
+          userName: userName,
+          userSurname: userSurname,
+          userEmail: userEmail,
+          userPassword: userPassword
+        }).then(() => {
+          res.status(200).json({message: 'user is updated'})
+        });
+      } else {
+        res.status(404).json({message: 'user not found'});
+      }
+    })
+  }
 })
 
 /**
@@ -176,35 +181,35 @@ app.patch('/user/:userID', authenticateUser, async (req, res) => {
  */
 app.get('/user/:userID', authenticateUser, async (req, res) => {
   User.findById(req.params.userID)
-          .then((user) => res.status(200).json({message: user}))
+    .then((user) => res.status(200).json({message: user}))
     .catch(() => res.status(404).json({message: 'the user was not found'}));
-    });
-    
+});
+
 /**
  * DELETE function that deletes a user by id
  * @Param string userID: query parameter by which the user is searched
  * @Param string password: parameter in the body, passwort of the User
  */
 app.delete('/user/:userID', authenticateUser, async (req, res) => {
-        User.findOne({
-            _id: req.params.userID,
-            userPassword: req.body.userPassword
-        }).then((user) => {
-            if (user) {
-                User.deleteOne({
-                    _id: req.params.userID,
-                    userPassword: req.body.userPassword
-                }).then(() =>{
-                    res.status(200).json({message: 'user deleted'})
-                });
-            } else {
-                res.status(404).json({message: 'user not found'});
-            }
-        })
-    })
-    
+  User.findOne({
+    _id: req.params.userID,
+    userPassword: req.body.userPassword
+  }).then((user) => {
+    if (user) {
+      User.deleteOne({
+        _id: req.params.userID,
+        userPassword: req.body.userPassword
+      }).then(() => {
+        res.status(200).json({message: 'user deleted'})
+      });
+    } else {
+      res.status(404).json({message: 'user not found'});
+    }
+  })
+})
+
 /**
- * DELETE function that deletes the user from a group 
+ * DELETE function that deletes the user from a group
  * @Param string groupID: id of the group
  * @Param string userID: id of the user
  */
@@ -213,10 +218,10 @@ app.delete('/user/:groupID/:userID', authenticateUser, async (req, res) => {
     _id: req.params.groupID
   }).then((group) => {
     if (group) {
-        group.members.splice(group.members.indexOf(req.params.userID), 1);
-        group.save();
-        res.status(200).json({message: 'User deleted from group'})
-        
+      group.members.splice(group.members.indexOf(req.params.userID), 1);
+      group.save();
+      res.status(200).json({message: 'User deleted from group'})
+
     } else {
       res.status(404).json({message: 'the group was not found'});
     }
