@@ -12,7 +12,7 @@ const Token = require("../models/token");
 const cors = require("cors");
 
 // setting up global variables
-const apiKeyAlwin = '?apiKey=397d585aa35c4b1b8b27beda022fd95f';
+const apiKeyAlwin = 'apiKey=397d585aa35c4b1b8b27beda022fd95f';
 const apiUrl = 'https://api.spoonacular.com/'
 
 // creating express server
@@ -51,8 +51,14 @@ app.post('/group', authenticateUser, async (req, res) => {
   if (!userID || !groupName) {
     res.status(400).json({mesage: 'incorect syntax, please try again'});
   } else {
-    new Group({groupName: groupName, admin: userID, members: [req.body.userID]}).save().then((group) => {
-      res.status(201).json({message: group});
+    Group.findOne({groupName: groupName, admin: userID}).then((group) => {
+      if (group) {
+        res.status(400).json({message: 'the group already exists'})
+      } else {
+        new Group({groupName: groupName, admin: userID, members: [req.body.userID]}).save().then((group) => {
+          res.status(201).json({message: group});
+        })
+      }
     })
   }
 })
@@ -63,8 +69,13 @@ app.post('/group', authenticateUser, async (req, res) => {
  */
 app.get('/group/:groupID', authenticateUser, async (req, res) => {
   Group.findById(req.params.groupID)
-    .then((group) => res.status(200).json({message: group}))
-    .catch(() => res.status(404).json({message: 'the group was not found'}));
+    .then((group) => {
+      if (group) {
+        res.status(200).json({message: group})
+      } else {
+        res.status(404).json({message: 'the group was not found'})
+      }
+    })
 })
 
 /**
@@ -120,9 +131,13 @@ app.delete('/group/:groupID/:deleteUserID', authenticateUser, async (req, res) =
 app.post('/group/:groupID/:addUserID', authenticateUser, async (req, res) => {
   Group.findOne({_id: req.params.groupID, admin: req.body.userID}).then((group) => {
     if (group) {
-      group.members.push(req.params.addUserID);
-      group.save();
-      res.status(200).json({message: 'user was added to group'})
+      if (!group.members.includes(req.params.addUserID)) {
+        group.members.push(req.params.addUserID);
+        group.save();
+        res.status(200).json({message: 'user was added to group'})
+      } else {
+        res.status(400).json({message: 'user is already part of group'});
+      }
     } else {
       res.status(404).json({message: 'the group was not found'});
     }
@@ -147,13 +162,19 @@ app.post('/user', async (req, res) => {
   if (!userName || !userSurname || !userEmail || !userPassword) {
     res.status(400).json({message: 'incorrect syntax, please try again'});
   } else {
-    new User({
-      userName: userName,
-      userSurname: userSurname,
-      userEmail: userEmail,
-      userPassword: userPassword
-    }).save().then(() => {
-      res.status(201).json({message: 'user was created'});
+    User.findOne({userEmail: userEmail}).then((user) => {
+      if (user) {
+        res.status(400).json({message: 'user already exists'});
+      } else {
+        new User({
+          userName: userName,
+          userSurname: userSurname,
+          userEmail: userEmail,
+          userPassword: userPassword
+        }).save().then(() => {
+          res.status(201).json({message: 'user was created'});
+        })
+      }
     })
   }
 })
@@ -203,8 +224,13 @@ app.patch('/user/:userID', authenticateUser, async (req, res) => {
  */
 app.get('/user/:userID', authenticateUser, async (req, res) => {
   User.findById(req.params.userID)
-    .then((user) => res.status(200).json({message: user}))
-    .catch(() => res.status(404).json({message: 'the user was not found'}));
+    .then((user) => {
+      if (user) {
+        res.status(200).json({message: user})
+      } else {
+        res.status(404).json({message: 'the user was not found'})
+      }
+    })
 });
 
 /**
@@ -458,12 +484,183 @@ app.get('/user/:userID/dislikes', authenticateUser, async (req, res) => {
 
 // external api calls
 
-// Example call to the external API -> POC
-app.post('/produkt', async (req, res) => {
+/**
+ * GET function that returns the rating and information about a specific product with the option to check the allergies,
+ * preferences and dislikes of a group of users
+ * @Param string upc: upc number by which the product is beeing searched
+ * @Param string groupID: used to get the group to check the preferences ...
+ */
+app.get('/product', authenticateUser, async (req, res) => {
+  // set the url for the product call and make the call
   const url = `${apiUrl}food/products/upc/${req.body.upc}${apiKeyAlwin}`;
-  const fetch_response = await fetch(url);
-  const json = await fetch_response.json();
-  res.json(json);
+  const fetchResponse = await fetch(url);
+  const responeJson = await fetchResponse.json();
+
+  // get title and ingredients from product
+  const productTitle = responeJson.title;
+  const productIngredients = responeJson.ingredients;
+
+  // check if groupID was given in request
+  if (req.body.groupID) {
+    await Group.findOne({_id: req.body.groupID}).then(async (group) => {
+      if (group) {
+        let allergies = []
+        let preferences = [];
+        let dislikes = [];
+        let isLiked = 0;
+        let isDisliked = 0;
+        let isAllergic = 0;
+
+        for (const member of group.members) {
+          // get all allergies, dislikes and preferences of the group members
+          await Allergie.findOne({userID: member}).then(allergie => {
+            allergie.allergies.forEach(entry => {
+              if (!allergies.includes(entry)) allergies.push(entry)
+            })
+          });
+
+          await Dislike.findOne({userID: member}).then(dislike => {
+            dislike.dislikes.forEach(entry => {
+              if (!dislikes.includes(entry)) dislikes.push(entry)
+            })
+          });
+
+          await Preference.findOne({userID: member}).then(preference => {
+            preference.preferences.forEach(entry => {
+              if (!preferences.includes(entry)) preferences.push(entry)
+            })
+          });
+
+          // check if product ingredients match with entries of the lists above
+          try {
+            productIngredients.forEach(product => {
+              if (allergies.includes(product.name)) isAllergic++;
+              if (preferences.includes(product.name)) isLiked++;
+              if (dislikes.includes(product.name)) isDisliked++;
+            })
+          } catch (error) {}
+
+          // return the right productState
+          if (isAllergic) {
+            res.status(200).json({
+              productState: 'allergic',
+              color: 'red',
+              title: productTitle
+            })
+          } else if (isDisliked) {
+            res.status(200).json({
+              productState: 'disliked',
+              color: 'yellow',
+              title: productTitle
+            })
+          } else if (isLiked) {
+            res.status(200).json({
+              productState: 'liked',
+              color: 'green',
+              title: productTitle
+            })
+          } else {
+            res.status(200).json({
+              productState: 'neutral',
+              color: 'white',
+              title: productTitle
+            })
+          }
+        }
+      } else {
+        res.status(400).json({message: 'group does not exist'});
+      }
+    })
+  } else {
+    res.status(200).json({title: productTitle, ingredients: productIngredients})
+  }
+})
+
+/**
+ * GET function that gets a specific product and searches/ rates all recipies that include the given product against a given group
+ * @Param string upc: the product that should be included in the recipies
+ * @Param string groupID: used to get the group and check the preferences ...
+ * @Param number recipesAmount: Amount of recipes that should be suggested
+ */
+app.get('/recipe', authenticateUser, async (req, res) => {
+  // set variables
+  let allergies = []
+  let preferences = [];
+  let dislikes = [];
+  let recipes = [];
+  // set the number of recipes that should be suggested
+  const numberOfRecipes = req.body.recipesAmount;
+
+  // get the group, and its lists, for which the recipes are beeing rated
+  await Group.findOne({_id: req.body.groupID}).then(async (group) => {
+    if (group) {
+      for (const member of group.members) {
+        // get all allergies, dislikes and preferences of the group members
+        await Allergie.findOne({userID: member}).then(allergie => {
+          allergie.allergies.forEach(entry => {
+            if (!allergies.includes(entry)) allergies.push(entry)
+          })
+        });
+
+        await Dislike.findOne({userID: member}).then(dislike => {
+          dislike.dislikes.forEach(entry => {
+            if (!dislikes.includes(entry)) dislikes.push(entry)
+          })
+        });
+
+        await Preference.findOne({userID: member}).then(preference => {
+          preference.preferences.forEach(entry => {
+            if (!preferences.includes(entry)) preferences.push(entry)
+          })
+        });
+      }
+    } else {
+      res.status(400).json({message: 'group does not exist'});
+    }
+  })
+
+  // call to get the product that should be included in the recipes
+  const productUrl = `${apiUrl}food/products/upc/${req.body.upc}?${apiKeyAlwin}`;
+  const productFetchResponse = await fetch(productUrl);
+  const productResponeJson = await productFetchResponse.json();
+  let productIngredients = '';
+
+  // get ingredients from product
+  productResponeJson.ingredients.forEach(entry => {
+    if (productIngredients.length) {
+      productIngredients = productIngredients + ',+' + entry.name
+    } else productIngredients = productIngredients + entry.name;
+  })
+
+  // request to get recipes
+  const recipeUrl = `${apiUrl}recipes/findByIngredients?ingredients=${productIngredients}&number=${numberOfRecipes}&${apiKeyAlwin}`;
+  const recipeFetchResponse = await fetch(recipeUrl);
+  const recipeResponeJson = await recipeFetchResponse.json();
+
+  // get recipe information for every recipe
+  for (const recipe of recipeResponeJson) {
+    const recipeInformationUrl = `${apiUrl}recipes/${recipe.id}/information?includeNutrition=false&${apiKeyAlwin}`;
+    const recipeInformation = await fetch(recipeInformationUrl)
+    const informationJson = await recipeInformation.json();
+    const recipeIngredients = informationJson.extendedIngredients;
+
+    let isLiked = 0;
+    let isDisliked = 0;
+    let isAllergic = 0;
+
+    // check preferences, allergies and dislikes for every ingerient of the recipe
+    try {
+      recipeIngredients.forEach(product => {
+        if (allergies.includes(product.name)) isAllergic++;
+        if (preferences.includes(product.name)) isLiked++;
+        if (dislikes.includes(product.name)) isDisliked++;
+      })
+    } catch (error) {}
+
+    // return the recipe rating
+    recipes.push({recipeTitle: recipe.title, rating: {isLiked, isAllergic, isDisliked}})
+  }
+  res.status(200).json(recipes);
 })
 
 // middleware and login/out calls
@@ -476,8 +673,9 @@ app.post('/produkt', async (req, res) => {
 app.post('/login', async (req, res) => {
   User.findOne({userEmail: req.body.email, userPassword: req.body.password}).then((user) => {
     if (user) {
+      Token.deleteOne({userID: user._id.toString()}).then();
       const token = Math.random().toString(36).substr(2, 5);
-      new Token({userID: user._id, token: token}).save().then(() => {
+      new Token({userID: user._id.toString(), token: token}).save().then(() => {
         res.status(200).json({loginToken: token, userID: user._id})
       })
     } else {
