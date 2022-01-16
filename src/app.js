@@ -69,8 +69,13 @@ app.post('/group', authenticateUser, async (req, res) => {
  */
 app.get('/group/:groupID', authenticateUser, async (req, res) => {
   Group.findById(req.params.groupID)
-    .then((group) => res.status(200).json({message: group}))
-    .catch(() => res.status(404).json({message: 'the group was not found'}));
+    .then((group) => {
+      if (group) {
+        res.status(200).json({message: group})
+      } else {
+        res.status(404).json({message: 'the group was not found'})
+      }
+    })
 })
 
 /**
@@ -126,9 +131,13 @@ app.delete('/group/:groupID/:deleteUserID', authenticateUser, async (req, res) =
 app.post('/group/:groupID/:addUserID', authenticateUser, async (req, res) => {
   Group.findOne({_id: req.params.groupID, admin: req.body.userID}).then((group) => {
     if (group) {
-      group.members.push(req.params.addUserID);
-      group.save();
-      res.status(200).json({message: 'user was added to group'})
+      if (!group.members.includes(req.params.addUserID)) {
+        group.members.push(req.params.addUserID);
+        group.save();
+        res.status(200).json({message: 'user was added to group'})
+      } else {
+        res.status(400).json({message: 'user is already part of group'});
+      }
     } else {
       res.status(404).json({message: 'the group was not found'});
     }
@@ -153,13 +162,19 @@ app.post('/user', async (req, res) => {
   if (!userName || !userSurname || !userEmail || !userPassword) {
     res.status(400).json({message: 'incorrect syntax, please try again'});
   } else {
-    new User({
-      userName: userName,
-      userSurname: userSurname,
-      userEmail: userEmail,
-      userPassword: userPassword
-    }).save().then(() => {
-      res.status(201).json({message: 'user was created'});
+    User.findOne({userEmail: userEmail}).then((user) => {
+      if (user) {
+        res.status(400).json({message: 'user already exists'});
+      } else {
+        new User({
+          userName: userName,
+          userSurname: userSurname,
+          userEmail: userEmail,
+          userPassword: userPassword
+        }).save().then(() => {
+          res.status(201).json({message: 'user was created'});
+        })
+      }
     })
   }
 })
@@ -209,8 +224,13 @@ app.patch('/user/:userID', authenticateUser, async (req, res) => {
  */
 app.get('/user/:userID', authenticateUser, async (req, res) => {
   User.findById(req.params.userID)
-    .then((user) => res.status(200).json({message: user}))
-    .catch(() => res.status(404).json({message: 'the user was not found'}));
+    .then((user) => {
+      if (user) {
+        res.status(200).json({message: user})
+      } else {
+        res.status(404).json({message: 'the user was not found'})
+      }
+    })
 });
 
 /**
@@ -513,13 +533,33 @@ app.get('/product', authenticateUser, async (req, res) => {
         })
 
         if (isAllergic) {
-          res.status(200).json({productState: 'allergic', color: 'red', title: productTitle, ingredients: productIngredients})
+          res.status(200).json({
+            productState: 'allergic',
+            color: 'red',
+            title: productTitle,
+            ingredients: productIngredients
+          })
         } else if (isDisliked) {
-          res.status(200).json({productState: 'disliked', color: 'yellow', title: productTitle, ingredients: productIngredients})
+          res.status(200).json({
+            productState: 'disliked',
+            color: 'yellow',
+            title: productTitle,
+            ingredients: productIngredients
+          })
         } else if (isLiked) {
-          res.status(200).json({productState: 'liked', color: 'green', title: productTitle, ingredients: productIngredients})
+          res.status(200).json({
+            productState: 'liked',
+            color: 'green',
+            title: productTitle,
+            ingredients: productIngredients
+          })
         } else {
-          res.status(200).json({productState: 'neutral', color: 'whites', title: productTitle, ingredients: productIngredients})
+          res.status(200).json({
+            productState: 'neutral',
+            color: 'whites',
+            title: productTitle,
+            ingredients: productIngredients
+          })
         }
       })
     })
