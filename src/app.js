@@ -12,6 +12,7 @@ const Token = require("../models/token");
 const cors = require("cors");
 
 // setting up global variables
+// spare apiKey: b686e419cd294805929e983b84119821
 const apiKeyAlwin = 'apiKey=397d585aa35c4b1b8b27beda022fd95f';
 const apiUrl = 'https://api.spoonacular.com/'
 
